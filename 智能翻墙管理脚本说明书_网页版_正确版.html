@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能翻墙管理脚本说明书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 6s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            position: relative;
+        }
+
+        .section h2::before {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: #e74c3c;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin: 25px 0 15px 0;
+            font-size: 1.4rem;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+
+        .command-box {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+            border-left: 5px solid #3498db;
+        }
+
+        .command-box::before {
+            content: '💻';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .highlight-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border: none;
+            padding: 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-warning {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .status-error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-item {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .grid-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .grid-item h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .emoji {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .command-box {
+                font-size: 0.9rem;
+            }
+        }
+
+        .tip-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+
+        .tip-box h4 {
+            color: #f39c12;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-info {
+            background: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="emoji">📚</span> 智能翻墙管理脚本说明书</h1>
+            <p>完整的功能说明和技术细节 - v1.1</p>
+        </div>
+
+        <div class="content">
+            <div class="highlight-box">
+                <h3><span class="emoji">🚀</span> 快速开始（最重要）</h3>
+                <p>记住这三个命令就够了！</p>
+                <div class="command-box">
+# 开启翻墙
+./mihomo-manager.sh on
+
+# 关闭翻墙  
+./mihomo-manager.sh off
+
+# 查看状态
+./mihomo-manager.sh status
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">📋</span> 完整功能说明</h2>
+                
+                <h3>🔧 核心命令</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>命令</th>
+                                <th>功能</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>on</code></td>
+                                <td>开启翻墙</td>
+                                <td>启动服务，设置代理，配置浏览器</td>
+                            </tr>
+                            <tr>
+                                <td><code>off</code></td>
+                                <td>关闭翻墙</td>
+                                <td>停止服务，清除代理，恢复直连</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>查看状态</td>
+                                <td>显示完整的服务和配置状态</td>
+                            </tr>
+                            <tr>
+                                <td><code>help</code></td>
+                                <td>显示帮助</td>
+                                <td>显示所有可用命令</td>
+                            </tr>
+                            <tr>
+                                <td><code>backup</code></td>
+                                <td>手动备份</td>
+                                <td>备份当前配置和状态</td>
+                            </tr>
+                            <tr>
+                                <td><code>restore</code></td>
+                                <td>恢复配置</td>
+                                <td>从备份恢复配置</td>
+                            </tr>
+                            <tr>
+                                <td><code>test</code></td>
+                                <td>测试网络</td>
+                                <td>测试直连和代理连接</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🎯</span> 详细功能介绍</h2>
+                
+                <h3>1. 开启翻墙 (on)</h3>
+                <div class="command-box">
+./mihomo-manager.sh on
+                </div>
+                
+                <h4>执行流程：</h4>
+                <ol>
+                    <li>✅ 备份当前配置</li>
+                    <li>✅ 启动mihomo服务</li>
+                    <li>✅ 启用bashrc代理配置</li>
+                    <li>✅ 设置当前会话环境变量</li>
+                    <li>✅ 设置GNOME代理为手动模式</li>
+                    <li>✅ 保存状态为enabled</li>
+                    <li>✅ 验证网络连通性</li>
+                </ol>
+                
+                <h4>输出示例：</h4>
+                <div class="command-box">
+开启翻墙...
+✅ 配置已备份
+启动mihomo服务...
+✅ mihomo服务已启动
+[2026-03-15 04:33:27] GNOME代理已设置为手动模式
+🎉 翻墙已成功开启！
+                </div>
+
+                <h3>2. 关闭翻墙 (off)</h3>
+                <div class="command-box">
+./mihomo-manager.sh off
+                </div>
+                
+                <h4>执行流程：</h4>
+                <ol>
+                    <li>✅ 备份当前配置</li>
+                    <li>✅ 停止mihomo服务</li>
+                    <li>✅ 注释bashrc代理配置</li>
+                    <li>✅ 清除当前会话环境变量</li>
+                    <li>✅ 设置GNOME代理为无代理模式</li>
+                    <li>✅ 保存状态为disabled</li>
+                    <li>✅ 验证直连网络</li>
+                </ol>
+                
+                <h4>输出示例：</h4>
+                <div class="command-box">
+关闭翻墙...
+✅ 配置已备份
+停止mihomo服务...
+✅ mihomo服务已停止
+[2026-03-15 04:32:41] GNOME代理已设置为无代理模式
+[2026-03-15 04:32:41] 代理配置已禁用
+🎉 翻墙已关闭，直连网络正常！
+                </div>
+
+                <h3>3. 查看状态 (status)</h3>
+                <div class="command-box">
+./mihomo-manager.sh status
+                </div>
+                
+                <h4>显示信息：</h4>
+                <ul>
+                    <li>mihomo服务状态（运行中/已停止）</li>
+                    <li>环境变量状态（代理模式/直连模式）</li>
+                    <li>GNOME代理状态（手动模式/无代理模式）</li>
+                    <li>端口监听状态（监听中/未监听）</li>
+                    <li>保存状态（enabled/disabled）</li>
+                </ul>
+                
+                <h4>输出示例：</h4>
+                <div class="command-box">
+当前状态:
+mihomo服务: 运行中
+环境变量: 代理模式
+  HTTP_PROXY=http://127.0.0.1:7890
+  HTTPS_PROXY=http://127.0.0.1:7890
+GNOME代理: 手动模式
+7890端口: 监听中
+保存状态: enabled
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🔧</span> 高级功能</h2>
+                
+                <h3>4. 备份配置 (backup)</h3>
+                <div class="command-box">
+./mihomo-manager.sh backup
+                </div>
+                
+                <h4>备份内容：</h4>
+                <ul>
+                    <li>~/.bashrc 配置文件</li>
+                    <li>~/.config/mihomo/config.yaml 配置</li>
+                    <li>当前环境变量</li>
+                    <li>当前状态信息</li>
+                </ul>
+                
+                <h4>备份位置：</h4>
+                <div class="command-box">
+/media/user/proxy-config-backup/smart-backup/configs/backup_YYYYMMDD_HHMMSS
+                </div>
+
+                <h3>5. 恢复配置 (restore)</h3>
+                <div class="command-box">
+./mihomo-manager.sh restore
+                </div>
+                
+                <h4>恢复流程：</h4>
+                <ol>
+                    <li>列出所有可用备份</li>
+                    <li>用户选择备份版本</li>
+                    <li>恢复配置文件</li>
+                    <li>重新加载环境变量</li>
+                </ol>
+
+                <h3>6. 测试网络 (test)</h3>
+                <div class="command-box">
+./mihomo-manager.sh test
+                </div>
+                
+                <h4>测试项目：</h4>
+                <ul>
+                    <li>直连测试（百度）</li>
+                    <li>代理测试（Google）</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🎯</span> 状态详解</h2>
+                
+                <h3>服务状态</h3>
+                <ul>
+                    <li><span class="status-success">运行中</span> ✅ - mihomo代理服务正在运行</li>
+                    <li><span class="status-error">已停止</span> ❌ - mihomo代理服务已停止</li>
+                </ul>
+
+                <h3>环境变量状态</h3>
+                <ul>
+                    <li><span class="status-success">代理模式</span> ✅ - HTTP_PROXY等变量已设置</li>
+                    <li><span class="status-warning">直连模式</span> ⚠️ - 代理变量已清除</li>
+                </ul>
+
+                <h3>GNOME代理状态</h3>
+                <ul>
+                    <li><span class="status-success">手动模式</span> ✅ - 浏览器使用系统代理</li>
+                    <li><span class="status-warning">无代理模式</span> ⚠️ - 浏览器直连网络</li>
+                    <li><span class="badge badge-info">自动模式</span> 🔵 - 使用自动代理配置</li>
+                    <li><span class="status-error">未知模式</span> ❌ - 代理设置异常</li>
+                </ul>
+
+                <h3>端口监听状态</h3>
+                <ul>
+                    <li><span class="status-success">监听中</span> ✅ - 7890端口正在监听</li>
+                    <li><span class="status-error">未监听</span> ❌ - 7890端口未监听</li>
+                </ul>
+
+                <h3>保存状态</h3>
+                <ul>
+                    <li><span class="status-success">enabled</span> ✅ - 上次保存为开启状态</li>
+                    <li><span class="status-warning">disabled</span> ⚠️ - 上次保存为关闭状态</li>
+                    <li><span class="status-error">未设置</span> ❌ - 没有状态文件</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🔍</span> 故障排除</h2>
+                
+                <h3>常见问题1：翻墙开启后浏览器无法访问国外网站</h3>
+                
+                <h4>症状：</h4>
+                <ul>
+                    <li>脚本显示开启成功</li>
+                    <li>mihomo服务运行中</li>
+                    <li>但浏览器无法访问Google等</li>
+                </ul>
+                
+                <h4>解决步骤：</h4>
+                <div class="command-box">
+# 1. 检查状态
+./mihomo-manager.sh status
+
+# 2. 确认GNOME代理模式
+gsettings get org.gnome.system.proxy mode
+
+# 3. 如果不是'manual'，重新开启
+./mihomo-manager.sh off
+./mihomo-manager.sh on
+                </div>
+
+                <h3>常见问题2：翻墙关闭后浏览器无法访问国内网站</h3>
+                
+                <h4>症状：</h4>
+                <ul>
+                    <li>脚本显示关闭成功</li>
+                    <li>mihomo服务已停止</li>
+                    <li>但浏览器无法访问百度等</li>
+                </ul>
+                
+                <h4>解决步骤：</h4>
+                <div class="command-box">
+# 1. 检查状态
+./mihomo-manager.sh status
+
+# 2. 确认GNOME代理模式
+gsettings get org.gnome.system.proxy mode
+
+# 3. 如果不是'none'，重新关闭
+./mihomo-manager.sh on
+./mihomo-manager.sh off
+                </div>
+
+                <h3>常见问题3：脚本执行失败</h3>
+                
+                <h4>症状：</h4>
+                <ul>
+                    <li>命令执行报错</li>
+                    <li>权限不足</li>
+                    <li>服务启动失败</li>
+                </ul>
+                
+                <h4>解决步骤：</h4>
+                <div class="command-box">
+# 1. 检查脚本权限
+ls -la ~/mihomo-manager.sh
+
+# 2. 添加执行权限
+chmod +x ~/mihomo-manager.sh
+
+# 3. 检查mihomo服务
+systemctl status mihomo
+                </div>
+
+                <h3>常见问题4：环境变量不生效</h3>
+                
+                <h4>症状：</h4>
+                <ul>
+                    <li>脚本执行成功</li>
+                    <li>但环境变量没有设置</li>
+                </ul>
+                
+                <h4>解决步骤：</h4>
+                <div class="command-box">
+# 1. 手动设置环境变量
+export HTTP_PROXY=http://127.0.0.1:7890
+export HTTPS_PROXY=http://127.0.0.1:7890
+export ALL_PROXY=http://127.0.0.1:7890
+
+# 2. 重新加载bashrc
+source ~/.bashrc
+
+# 3. 验证设置
+env | grep -i proxy
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">📁</span> 文件位置</h2>
+                
+                <h3>脚本文件</h3>
+                <div class="command-box">
+~/mihomo-manager.sh                    # 主脚本
+~/.mihomo_status                       # 状态文件
+                </div>
+
+                <h3>配置文件</h3>
+                <div class="command-box">
+~/.bashrc                             # Shell配置
+~/.config/mihomo/config.yaml          # mihomo配置
+/etc/systemd/system/mihomo.service    # 系统服务
+                </div>
+
+                <h3>备份文件</h3>
+                <div class="command-box">
+/media/user/proxy-config-backup/smart-backup/
+├── configs/          # 配置备份
+├── logs/             # 操作日志
+├── weekly/           # 周期备份
+└── emergency/        # 紧急备份
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🔄</span> 版本更新</h2>
+                
+                <h3>v1.1 (2026-03-15)</h3>
+                <ul>
+                    <li>✅ 新增GNOME代理自动管理</li>
+                    <li>✅ 新增当前会话环境变量管理</li>
+                    <li>✅ 完善状态显示功能</li>
+                    <li>✅ 优化用户体验</li>
+                </ul>
+
+                <h3>v1.0 (2026-03-15)</h3>
+                <ul>
+                    <li>✅ 基础翻墙开关功能</li>
+                    <li>✅ 自动备份恢复</li>
+                    <li>✅ 状态记忆功能</li>
+                    <li>✅ 网络测试功能</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🎯</span> 使用技巧</h2>
+                
+                <h3>⚡ 快速操作</h3>
+                <div class="command-box">
+# 创建别名（可选）
+alias proxy-on='./mihomo-manager.sh on'
+alias proxy-off='./mihomo-manager.sh off'
+alias proxy-status='./mihomo-manager.sh status'
+
+# 使用别名
+proxy-on      # 快速开启
+proxy-off     # 快速关闭
+proxy-status  # 快速查看
+                </div>
+
+                <h3>📋 状态检查脚本</h3>
+                <div class="command-box">
+# 创建状态检查脚本
+cat > check-proxy.sh << 'EOF'
+#!/bin/bash
+echo "=== 翻墙状态检查 ==="
+./mihomo-manager.sh status
+echo ""
+echo "=== 网络测试 ==="
+echo "测试百度："
+curl -I --connect-timeout 3 http://www.baidu.com 2>/dev/null | head -1
+echo "测试Google："
+curl -I --connect-timeout 3 --proxy http://127.0.0.1:7890 https://www.google.com 2>/dev/null | head -1
+EOF
+
+chmod +x check-proxy.sh
+./check-proxy.sh
+                </div>
+
+                <h3>📱 浏览器测试</h3>
+                
+                <h4>测试翻墙功能</h4>
+                <p>开启翻墙后，尝试访问：</p>
+                <ul>
+                    <li>https://www.google.com</li>
+                    <li>https://www.youtube.com</li>
+                    <li>https://twitter.com</li>
+                </ul>
+
+                <h4>测试直连功能</h4>
+                <p>关闭翻墙后，尝试访问：</p>
+                <ul>
+                    <li>https://www.baidu.com</li>
+                    <li>https://www.taobao.com</li>
+                    <li>https://weibo.com</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">🎊</span> 总结</h2>
+                
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <h4>✅ 优势</h4>
+                        <ul>
+                            <li>一条命令搞定 - 无需复杂操作</li>
+                            <li>自动化管理 - 环境变量、系统代理自动处理</li>
+                            <li>状态记忆 - 重启后自动恢复</li>
+                            <li>安全备份 - 自动备份恢复</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid-item">
+                        <h4>🎯 适用场景</h4>
+                        <ul>
+                            <li>需要频繁切换国内外网站</li>
+                            <li>不想手动配置代理</li>
+                            <li>需要配置备份保护</li>
+                            <li>希望浏览器自动生效</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid-item">
+                        <h4>🎉 享受使用</h4>
+                        <ul>
+                            <li>🚀 一条命令 - 简单快速</li>
+                            <li>🔄 自动切换 - 无需手动操作</li>
+                            <li>📱 浏览器兼容 - 完美支持</li>
+                            <li>🛡️ 稳定可靠 - 自动备份恢复</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <h4>🎯 最佳实践</h4>
+                    <ul>
+                        <li>使用脚本管理，不要手动修改配置</li>
+                        <li>经常检查状态，确保配置正确</li>
+                        <li>遇到问题先重启（off → on）</li>
+                        <li>定期备份重要配置</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><span class="emoji">📚</span> 版本: v1.1 | 更新时间: 2026-03-15 | 功能: 完整的智能翻墙管理</p>
+            <p><span class="emoji">🎊</span> 享受智能翻墙管理带来的便利！</p>
+        </div>
+    </div>
+</body>
+</html>
